@@ -1,13 +1,15 @@
 package handler
 
 import (
-	"net/http"
+	"ms-decision-go/handler/requests"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CreateDecisionHandler(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "decision1",
-	})
+
+	var requestFrom requests.CreateDecisionRequest
+
+	ctx.BindJSON(&requestFrom)
+	logger.Infof("request : %v", requestFrom)
 }

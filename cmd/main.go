@@ -1,13 +1,16 @@
 package main
 
 import (
-	"fmt"
+	"ms-decision-go/config"
 	"ms-decision-go/router"
 )
 
 func main() {
+
+	// Initialize configuration (dabatase, logger, ...)
+	config.InitConfig()
+
 	// Intialize router
 	router.InitializeRouterConfig()
-	fmt.Println("Star")
 
 }
