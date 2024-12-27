@@ -1,23 +1,36 @@
 package handler
 
 import (
-	"fmt"
+	"ms-decision-go/config"
 	"ms-decision-go/handler/requests"
 	"ms-decision-go/model"
+	"ms-decision-go/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CreateDecisionHandler(ctx *gin.Context) {
+type CreateDecisionHandler struct {
+	repo   *repository.DecisionRepository
+	logger *config.Logger
+}
+
+func NewCreateDecisionHandler() *CreateDecisionHandler {
+	return &CreateDecisionHandler{
+		repo:   repository.NewDecisionRepository(),
+		logger: config.GetLogger("CreateDecisionHandler"),
+	}
+}
+
+func (hdl *CreateDecisionHandler) CreateDecision(ctx *gin.Context) {
 
 	var requestFrom requests.CreateDecisionRequest
 
 	err := ctx.BindJSON(&requestFrom)
-	logger.Infof("Body: %v", err)
+	hdl.logger.Infof("Body: %v", err)
 
 	if err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
-		logger.Errorf("Erro ao processar requisição: %v", err)
+		hdl.logger.Errorf("Erro ao processar requisição: %v", err)
 		return
 	}
 
@@ -26,41 +39,17 @@ func CreateDecisionHandler(ctx *gin.Context) {
 		Document: requestFrom.Document,
 	}
 
-	response, err := CreateDecisionUser(decision)
+	response, err := hdl.repo.CreateDecisionUser(decision)
 
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "Erro ao salvar os dados no banco"})
-		logger.Errorf("Erro ao salvar os dados no banco: %v", err)
+		hdl.logger.Errorf("Erro ao salvar os dados no banco: %v", err)
 		return
 	}
 
-	// Salva os dados no banco usando GORM
-	/*	if err := db.Create(&decision).Error; err != nil {
-			ctx.JSON(500, gin.H{"error": "Erro ao salvar os dados no banco"})
-			logger.Errorf("Erro ao salvar os dados no banco: %v", err)
-			return
-		}
-	*/
 	// Retorna sucesso
 	ctx.JSON(200, gin.H{
 		"message": "Dados salvos com sucesso!",
 		"data":    response,
 	})
-}
-
-func CreateDecisionUser(decision model.DecisionUser) (*model.DecisionUser, error) {
-	query := fmt.Sprintf(`
-        INSERT INTO %s (id, document)
-        VALUES ($1, $2)
-        RETURNING id, document
-    `, model.DecisionUser{}.TableName())
-
-	var user model.DecisionUser
-	err := db.QueryRow(query, decision.ID, decision.Document).Scan(&user.ID, &user.Document)
-	if err != nil {
-		logger.Errorf("Erro ao salvar os dados no banco: %v", err)
-		return nil, err
-	}
-
-	return &user, nil
 }
