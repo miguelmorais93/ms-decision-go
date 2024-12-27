@@ -1,13 +1,12 @@
 package config
 
 import (
+	"database/sql"
 	"fmt"
-
-	"gorm.io/gorm"
 )
 
 var (
-	db     *gorm.DB
+	db     *sql.DB
 	logger *Logger
 )
 
@@ -23,7 +22,7 @@ func InitConfig() error {
 
 }
 
-func Getdatabase() *gorm.DB {
+func Getdatabase() *sql.DB {
 	return db
 }
 

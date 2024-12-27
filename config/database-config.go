@@ -1,11 +1,10 @@
 package config
 
 import (
+	"database/sql"
 	"fmt"
-	"ms-decision-go/model"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
 )
 
 const (
@@ -16,7 +15,7 @@ const (
 	DBPort     = "5432"
 )
 
-func InitDabatase() (*gorm.DB, error) {
+func InitDabatase() (*sql.DB, error) {
 	logger := GetLogger("Postgres database: ")
 	logger.Debugf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
 		DBHost, DBUser, DBPassword, DBName, DBPort)
@@ -25,15 +24,16 @@ func InitDabatase() (*gorm.DB, error) {
 		DBHost, DBUser, DBPassword, DBName, DBPort)
 
 	// Abre a conexão com o banco de dados
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		logger.Errorf("Postgres error connection: %v", err)
 		return nil, err
 	}
 
-	// Auto-migração para criar tabelas
-	err = db.AutoMigrate(&model.DecisionUser{})
+	// Verifica a conexão
+	err = db.Ping()
 	if err != nil {
+		logger.Errorf("Postgres error connection: %v", err)
 		return nil, err
 	}
 

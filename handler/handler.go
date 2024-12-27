@@ -1,13 +1,12 @@
 package handler
 
 import (
+	"database/sql"
 	"ms-decision-go/config"
-
-	"gorm.io/gorm"
 )
 
 var (
-	db     *gorm.DB
+	db     *sql.DB
 	logger *config.Logger
 )
 
