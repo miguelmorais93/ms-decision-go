@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"ms-decision-go/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -27,6 +28,12 @@ func InitDabatase() (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		logger.Errorf("Postgres error connection: %v", err)
+		return nil, err
+	}
+
+	// Auto-migração para criar tabelas
+	err = db.AutoMigrate(&model.DecisionUser{})
+	if err != nil {
 		return nil, err
 	}
 
