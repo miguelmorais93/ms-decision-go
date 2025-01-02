@@ -21,39 +21,28 @@ func NewDecisionRepository() *DecisionRepository {
 	}
 }
 
-// CreateDecisionUser insere um novo usuário no banco e retorna a entidade completa
-func (r *DecisionRepository) CreateDecisionUser(decision model.DecisionUser) (*model.DecisionUser, error) {
-	query := fmt.Sprintf(`
-        INSERT INTO %s (id, document)
-        VALUES ($1, $2)
-        RETURNING id, document
-    `, model.DecisionUser{}.TableName())
-
-	var user model.DecisionUser
-	err := r.db.QueryRow(query, decision.ID, decision.Document).Scan(&user.ID, &user.Document)
-	if err != nil {
-		return nil, fmt.Errorf("erro ao salvar os dados no banco: %w", err)
-	}
-
-	return &user, nil
-}
-
 // GetDecisionUserByID busca um usuário pelo ID
-func (r *DecisionRepository) GetDecisionUserByID(id int64) (*model.DecisionUser, error) {
+func (r *DecisionRepository) FilterJobByProductAndSubProduct(product string, subProduct string) (*model.JobFilter, error) {
 	query := fmt.Sprintf(`
-        SELECT id, document
+        SELECT *
         FROM %s
-        WHERE id = $1
-    `, model.DecisionUser{}.TableName())
+        WHERE product = $1 and sub_product = $2
+    `, model.JobFilter{}.TableName())
 
-	var user model.DecisionUser
-	err := r.db.QueryRow(query, id).Scan(&user.ID, &user.Document)
+	var jobFiltered model.JobFilter
+	err := r.db.QueryRow(query, product, subProduct).Scan(
+		&jobFiltered.ID,
+		&jobFiltered.Product,
+		&jobFiltered.SubProduct,
+		&jobFiltered.PayloadValidation,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			r.logger.Errorf("Sem registro no banco de dados")
 			return nil, nil // Retorna nil se o registro não for encontrado
 		}
 		return nil, fmt.Errorf("erro ao buscar o usuário no banco: %w", err)
 	}
 
-	return &user, nil
+	return &jobFiltered, nil
 }

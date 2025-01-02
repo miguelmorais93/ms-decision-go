@@ -3,27 +3,26 @@ package handler
 import (
 	"ms-decision-go/config"
 	"ms-decision-go/handler/requests"
-	"ms-decision-go/model"
-	"ms-decision-go/repository"
+	"ms-decision-go/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 type CreateDecisionHandler struct {
-	repo   *repository.DecisionRepository
+	serv   *service.DecisionService
 	logger *config.Logger
 }
 
 func NewCreateDecisionHandler() *CreateDecisionHandler {
 	return &CreateDecisionHandler{
-		repo:   repository.NewDecisionRepository(),
+		serv:   service.NewDecisionService(),
 		logger: config.GetLogger("CreateDecisionHandler"),
 	}
 }
 
 func (hdl *CreateDecisionHandler) CreateDecision(ctx *gin.Context) {
 
-	var requestFrom requests.CreateDecisionRequest
+	var requestFrom requests.DecisionRequest
 
 	err := ctx.BindJSON(&requestFrom)
 	hdl.logger.Infof("Body: %v", err)
@@ -34,12 +33,7 @@ func (hdl *CreateDecisionHandler) CreateDecision(ctx *gin.Context) {
 		return
 	}
 
-	decision := model.DecisionUser{
-		ID:       requestFrom.ID,
-		Document: requestFrom.Document,
-	}
-
-	response, err := hdl.repo.CreateDecisionUser(decision)
+	response, err := hdl.serv.CreateDecision(requestFrom)
 
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "Erro ao salvar os dados no banco"})
